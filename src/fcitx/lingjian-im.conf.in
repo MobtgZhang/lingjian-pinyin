@@ -1,0 +1,9 @@
+[InputMethod]
+Name=LingJian Pinyin
+Name[zh_CN]=灵键拼音
+NativeName=灵键拼音
+Icon=fcitx-lingjian
+Label=灵
+LangCode=zh_CN
+Addon=lingjian
+IsConfigurable=False

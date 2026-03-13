@@ -1,0 +1,8 @@
+[Addon]
+Name=LingJian Pinyin
+Name[zh_CN]=灵键拼音
+Category=InputMethod
+Library=lingjian
+Type=SharedLibrary
+OnDemand=True
+Version=@PROJECT_VERSION@

@@ -1,5 +1,7 @@
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
+set(CMAKE_AUTOMOC ON)
+
 add_executable(lingjian_ui
     main.cpp
     candidate_view.cpp

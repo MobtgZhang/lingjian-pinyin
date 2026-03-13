@@ -39,7 +39,7 @@ Beam Search (SentenceDecoder)
   - `language_model.cpp/h`：语言模型评分
   - `sentence_decoder.cpp/h`：Beam Search 整句解码
   - `dictionary.cpp/h`：词典加载与查询
-- `src/fcitx/`：Fcitx5 插件入口与引擎适配层
+- `src/fcitx/`：Fcitx5 输入法 addon（引擎、候选列表、按键处理）
 - `src/ui/`：独立 UI 进程
   - `candidate_view.cpp/h`：候选栏
   - `input_widget.cpp/h`：输入框
@@ -53,14 +53,37 @@ Beam Search (SentenceDecoder)
 
 ## 使用说明
 
-### 构建与运行
+### 安装构建依赖
+
+```bash
+# Ubuntu / Debian
+sudo apt install build-essential cmake g++ qt6-base-dev libgl1-mesa-dev \
+    fcitx5 libfcitx5core-dev libfcitx5utils-dev fcitx5-modules-dev
+```
+
+### 构建 Fcitx5 输入法 addon
 
 ```bash
 mkdir build && cd build
-cmake .. -DCMAKE_BUILD_TYPE=Debug
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_FCITX5=ON
 cmake --build . -- -j$(nproc)
+sudo cmake --install .
+```
 
-# 从项目根目录运行（词典需要相对路径）
+安装完成后重新加载 fcitx5：
+
+```bash
+fcitx5-remote -r
+```
+
+然后在 `fcitx5-configtool` 中添加「灵键拼音」即可使用。
+
+### 构建独立 UI Demo
+
+```bash
+mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Debug -DBUILD_UI=ON -DBUILD_FCITX5=OFF
+cmake --build . -- -j$(nproc)
 cd .. && ./build/src/ui/lingjian_ui
 ```
 
@@ -68,6 +91,13 @@ cd .. && ./build/src/ui/lingjian_ui
 
 ```bash
 bash run.sh
+```
+
+### 构建 .deb 安装包
+
+```bash
+./build_deb.sh
+sudo dpkg -i lingjian-pinyin_0.1.0_amd64.deb
 ```
 
 ### 输入操作
@@ -124,9 +154,41 @@ logo_color=#FF7800
 点击状态栏的「🎨」按钮会弹出皮肤滑动选择窗口，内置 8 种皮肤（亮色、暗色、海蓝、草绿、星紫、玫瑰、落霞、冰川），
 支持鼠标滚轮或拖拽滑动浏览。点击「+」按钮可加载自定义皮肤 ZIP 文件。
 
+## X11 / Wayland 兼容性
+
+灵键拼音通过 Fcitx5 框架天然支持 X11 和 Wayland 两种显示服务器，输入法引擎本身无需做任何平台特定适配：
+
+| 显示服务器 | 协议 | 前端模块 |
+|-----------|------|---------|
+| X11 | XIM / Fcitx5 GTK/Qt IM Module | `fcitx5-frontend-gtk3`、`fcitx5-frontend-qt5` |
+| Wayland | `zwp_input_method_v2` | Fcitx5 内置 Wayland 前端 |
+
+建议安装以下前端模块以获得最佳体验：
+
+```bash
+# GTK 应用支持
+sudo apt install fcitx5-frontend-gtk3 fcitx5-frontend-gtk4
+
+# Qt 应用支持
+sudo apt install fcitx5-frontend-qt5 fcitx5-frontend-qt6
+
+# 配置工具
+sudo apt install fcitx5-config-qt
+```
+
+在 Wayland 环境下，请确保以下环境变量已设置（通常由桌面环境自动配置）：
+
+```bash
+export GTK_IM_MODULE=fcitx
+export QT_IM_MODULE=fcitx
+export XMODIFIERS=@im=fcitx
+export INPUT_METHOD=fcitx
+```
+
 ## 依赖
 
 - CMake >= 3.16
-- Qt6 Widgets
 - C++17
+- Fcitx5 >= 5.0（`libfcitx5core-dev`、`libfcitx5utils-dev`）
+- Qt6 Widgets（可选，仅独立 UI Demo 需要）
 - unzip（用于解压皮肤 ZIP 文件）
